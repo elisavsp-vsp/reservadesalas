@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Gerenciar salas')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Gerenciar salas</h1>
+        <a class="btn btn-primary" th:href="@{/admin/salas/nova}">+ Nova sala</a>
+    </div>
+
+    <div th:replace="~{fragments/layout :: mensagens}"></div>
+
+    <div th:if="${#lists.isEmpty(salas)}" class="alert alert-secondary">Nenhuma sala cadastrada.</div>
+
+    <div class="card" th:if="${!#lists.isEmpty(salas)}">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Identificação</th>
+                    <th>Localização</th>
+                    <th>Capacidade</th>
+                    <th>Situação</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="s : ${salas}">
+                    <td class="fw-semibold" th:text="${s.identificacao}">Sala 01</td>
+                    <td th:text="${s.localizacao}">Térreo</td>
+                    <td th:text="${s.capacidade}">4</td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${s.situacao.name() == 'DISPONIVEL'} ? 'text-bg-success' : 'text-bg-warning'"
+                              th:text="${s.situacao.descricao}">Disponível</span>
+                    </td>
+                    <td class="text-end">
+                        <div class="d-inline-flex gap-1">
+                            <a class="btn btn-outline-primary btn-sm" th:href="@{/admin/salas/{id}/editar(id=${s.id})}">Editar</a>
+                            <form th:action="@{/admin/salas/{id}/remover(id=${s.id})}" method="post"
+                                  onsubmit="return confirm('Remover esta sala? As reservas associadas também serão removidas.');">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Remover</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

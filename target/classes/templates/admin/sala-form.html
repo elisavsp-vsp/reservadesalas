@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${sala.id == null ? 'Nova sala' : 'Editar sala'})}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/admin/salas}">Salas</a></li>
+            <li class="breadcrumb-item active" aria-current="page"
+                th:text="${sala.id == null} ? 'Nova sala' : 'Editar sala'">Nova sala</li>
+        </ol>
+    </nav>
+
+    <div class="card" style="max-width: 640px;">
+        <div class="card-body p-4">
+            <h1 class="h4 mb-3" th:text="${sala.id == null} ? 'Cadastrar sala' : 'Editar sala'">Cadastrar sala</h1>
+
+            <form th:action="@{/admin/salas}" th:object="${sala}" method="post" novalidate>
+                <input type="hidden" th:field="*{id}">
+
+                <div class="mb-3">
+                    <label for="identificacao" class="form-label">Identificação</label>
+                    <input type="text" class="form-control" id="identificacao" th:field="*{identificacao}"
+                           placeholder="Ex.: Sala 05" th:classappend="${#fields.hasErrors('identificacao')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{identificacao}"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="localizacao" class="form-label">Localização</label>
+                    <input type="text" class="form-control" id="localizacao" th:field="*{localizacao}"
+                           placeholder="Ex.: 2º andar – Bloco B" th:classappend="${#fields.hasErrors('localizacao')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{localizacao}"></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="capacidade" class="form-label">Capacidade (pessoas)</label>
+                        <input type="number" min="1" class="form-control" id="capacidade" th:field="*{capacidade}"
+                               th:classappend="${#fields.hasErrors('capacidade')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{capacidade}"></div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="situacao" class="form-label">Situação</label>
+                        <select class="form-select" id="situacao" th:field="*{situacao}">
+                            <option th:each="s : ${situacoes}" th:value="${s}" th:text="${s.descricao}">Disponível</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                    <a class="btn btn-outline-secondary" th:href="@{/admin/salas}">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${sala.identificacao})}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/salas}">Salas</a></li>
+            <li class="breadcrumb-item active" aria-current="page" th:text="${sala.identificacao}">Sala 01</li>
+        </ol>
+    </nav>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between flex-wrap gap-2">
+                <div>
+                    <h1 class="h3 mb-1" th:text="${sala.identificacao}">Sala 01</h1>
+                    <p class="mb-0 text-muted" th:text="${sala.localizacao}">Localização</p>
+                </div>
+                <div class="text-md-end">
+                    <p class="mb-1">👥 Capacidade: <strong th:text="${sala.capacidade}">4</strong> pessoas</p>
+                    <span class="badge"
+                          th:classappend="${sala.situacao.name() == 'DISPONIVEL'} ? 'text-bg-success' : 'text-bg-warning'"
+                          th:text="${sala.situacao.descricao}">Disponível</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: mensagens}"></div>
+
+    <!-- RF009: consulta de disponibilidade por data -->
+    <form th:action="@{/salas/{id}(id=${sala.id})}" method="get" class="row g-2 align-items-end mb-3">
+        <div class="col-auto">
+            <label for="data" class="form-label mb-1">Data</label>
+            <input type="date" class="form-control" id="data" name="data" th:value="${data}" required>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-outline-primary">Consultar</button>
+        </div>
+    </form>
+
+    <h2 class="h5">Horários em <span th:text="${#temporals.format(data, 'dd/MM/yyyy (EEEE)')}">25/09/2026</span></h2>
+
+    <div th:if="${!diaUtil}" class="alert alert-warning">
+        A biblioteca funciona apenas de segunda a sexta-feira. Escolha outra data.
+    </div>
+
+    <div th:if="${diaUtil and sala.situacao.name() != 'DISPONIVEL'}" class="alert alert-warning">
+        Esta sala está indisponível para reservas no momento.
+    </div>
+
+    <p class="small text-muted" th:if="${diaUtil}">
+        Funcionamento: 08:00–12:00 e 14:00–20:00 (sem reservas entre 12:00 e 14:00).
+    </p>
+
+    <!-- RF010: horarios disponiveis e reservados -->
+    <div class="row g-2" th:if="${diaUtil}">
+        <div class="col-6 col-md-4 col-lg-3" th:each="h : ${horarios}">
+            <div class="card slot-card"
+                 th:classappend="${h.status.name() == 'DISPONIVEL'} ? 'livre'
+                                 : (${h.status.name() == 'RESERVADO'} ? 'ocupado'
+                                 : (${h.status.name() == 'MINHA_RESERVA'} ? 'minha' : ''))">
+                <div class="card-body py-2">
+                    <div class="fw-semibold">
+                        <span th:text="${#temporals.format(h.inicio, 'HH:mm')}">08:00</span> –
+                        <span th:text="${#temporals.format(h.fim, 'HH:mm')}">09:00</span>
+                    </div>
+
+                    <th:block th:switch="${h.status.name()}">
+                        <th:block th:case="'DISPONIVEL'">
+                            <form th:if="${!session.usuarioLogado.administrador and sala.situacao.name() == 'DISPONIVEL'}"
+                                  th:action="@{/reservas}" method="post" class="mt-1">
+                                <input type="hidden" name="salaId" th:value="${sala.id}">
+                                <input type="hidden" name="data" th:value="${data}">
+                                <input type="hidden" name="hora" th:value="${#temporals.format(h.inicio, 'HH:mm')}">
+                                <button type="submit" class="btn btn-success btn-sm w-100">Reservar</button>
+                            </form>
+                            <span th:if="${session.usuarioLogado.administrador or sala.situacao.name() != 'DISPONIVEL'}"
+                                  class="badge text-bg-success mt-1">Disponível</span>
+                        </th:block>
+                        <span th:case="'RESERVADO'" class="badge text-bg-danger mt-1">Reservado</span>
+                        <span th:case="'MINHA_RESERVA'" class="badge text-bg-primary mt-1">Sua reserva</span>
+                        <span th:case="*" class="badge text-bg-secondary mt-1">Encerrado</span>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
